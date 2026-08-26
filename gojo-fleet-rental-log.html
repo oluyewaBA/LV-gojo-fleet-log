@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOJO Lite Vehicle Rental Log</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+  :root{
+    --navy:#1A4A73;
+    --navy-dark:#123252;
+    --navy-deep:#0C2338;
+    --amber:#D98C2B;
+    --paper:#F4F6F8;
+    --card:#FFFFFF;
+    --line:#DCE3E9;
+    --ink:#16232E;
+    --ink-soft:#5B6B78;
+    --good:#2E7D5B;
+    --bad:#B3402A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Arial, sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+  header{
+    background:linear-gradient(135deg, var(--navy-deep), var(--navy) 60%, var(--navy-dark));
+    color:#fff;
+    padding:22px 18px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::after{
+    content:"";
+    position:absolute;
+    right:-40px; top:-40px;
+    width:160px; height:160px;
+    border:2px solid rgba(255,255,255,0.08);
+    border-radius:50%;
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    right:20px; bottom:-60px;
+    width:120px; height:120px;
+    border:2px solid rgba(255,255,255,0.06);
+    border-radius:50%;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--amber);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  h1{
+    margin:0;
+    font-size:21px;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  .sub{
+    font-size:12.5px;
+    color:rgba(255,255,255,0.72);
+    margin-top:4px;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:16px 14px 60px;
+  }
+  .tabs{
+    display:flex;
+    background:var(--card);
+    border-radius:10px;
+    padding:4px;
+    margin:-16px 14px 18px;
+    box-shadow:0 2px 10px rgba(12,35,56,0.10);
+    position:relative;
+    z-index:2;
+    max-width:612px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:10px 6px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    border-radius:7px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .tab.active{
+    background:var(--navy);
+    color:#fff;
+  }
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px 16px;
+    margin-bottom:14px;
+  }
+  .section-title{
+    font-size:11.5px;
+    letter-spacing:1.3px;
+    text-transform:uppercase;
+    color:var(--navy);
+    font-weight:700;
+    margin:0 0 12px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .section-title .dot{
+    width:7px;height:7px;border-radius:50%;background:var(--amber);
+  }
+  label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .field{margin-bottom:14px;}
+  input[type=text], input[type=date], input[type=time], select, textarea{
+    width:100%;
+    padding:11px 12px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    font-size:14.5px;
+    font-family:inherit;
+    color:var(--ink);
+    background:#fff;
+  }
+  textarea{resize:vertical; min-height:70px;}
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(26,74,115,0.14);
+  }
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+
+  .photo-box{
+    border:1.5px dashed var(--line);
+    border-radius:10px;
+    padding:12px;
+    text-align:center;
+    background:#FAFBFC;
+    position:relative;
+  }
+  .photo-box.has-photo{border-style:solid; border-color:var(--good);}
+  .photo-box img{
+    max-width:100%;
+    max-height:150px;
+    border-radius:6px;
+    display:block;
+    margin:0 auto 8px;
+  }
+  .photo-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--navy);
+    color:#fff;
+    border:none;
+    padding:9px 16px;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .photo-btn.retake{background:var(--ink-soft);}
+  .photo-hint{font-size:11.5px; color:var(--ink-soft); margin-top:6px;}
+  input[type=file]{display:none;}
+
+  .stop-panel{
+    border-top:2px dashed var(--line);
+    margin-top:4px;
+    padding-top:16px;
+  }
+
+  .primary-btn{
+    width:100%;
+    background:var(--amber);
+    color:#20120A;
+    border:none;
+    padding:14px;
+    border-radius:9px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    letter-spacing:0.2px;
+  }
+  .primary-btn:active{transform:translateY(1px);}
+  .ghost-btn{
+    width:100%;
+    background:#fff;
+    color:var(--navy);
+    border:1.5px solid var(--navy);
+    padding:12px;
+    border-radius:9px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:10px;
+  }
+  .msg{
+    text-align:center;
+    font-size:12.5px;
+    font-weight:600;
+    margin-top:10px;
+    min-height:16px;
+  }
+  .msg.ok{color:var(--good);}
+  .msg.err{color:var(--bad);}
+
+  .entry{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:4px solid var(--navy);
+    border-radius:10px;
+    padding:13px 14px;
+    margin-bottom:10px;
+  }
+  .entry-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:6px;
+  }
+  .entry-veh{font-weight:700; font-size:14.5px;}
+  .entry-date{font-size:11.5px; color:var(--ink-soft);}
+  .entry-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:4px 12px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .entry-grid b{color:var(--ink); font-weight:600;}
+  .entry-reason{
+    margin-top:8px;
+    font-size:12.5px;
+    color:var(--ink);
+    background:#FAFBFC;
+    border-radius:6px;
+    padding:8px 10px;
+  }
+  .entry-del{
+    background:none;
+    border:none;
+    color:var(--bad);
+    font-size:11.5px;
+    font-weight:700;
+    cursor:pointer;
+    padding:0;
+  }
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13px;
+    padding:36px 10px;
+  }
+  .count-pill{
+    display:inline-block;
+    background:var(--navy);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    padding:2px 9px;
+    border-radius:20px;
+    margin-left:6px;
+  }
+  .export-bar{
+    position:sticky;
+    bottom:0;
+    background:linear-gradient(to top, var(--paper) 70%, rgba(244,246,248,0));
+    padding:14px 0 4px;
+  }
+
+  /* Lock screen */
+  #lockScreen{
+    position:fixed;
+    inset:0;
+    background:linear-gradient(160deg, var(--navy-deep), var(--navy) 65%, var(--navy-dark));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+    padding:20px;
+  }
+  .lock-card{
+    background:#fff;
+    border-radius:14px;
+    padding:28px 24px;
+    width:100%;
+    max-width:320px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .lock-eyebrow{
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--amber);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .lock-title{
+    font-size:17px;
+    font-weight:700;
+    color:var(--ink);
+    margin-bottom:18px;
+  }
+  #pinInput{
+    width:100%;
+    text-align:center;
+    letter-spacing:8px;
+    font-size:22px;
+    padding:12px;
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    margin-bottom:12px;
+  }
+  #pinInput:focus{
+    outline:none;
+    border-color:var(--navy);
+    box-shadow:0 0 0 3px rgba(26,74,115,0.14);
+  }
+  .lock-btn{
+    width:100%;
+    background:var(--amber);
+    color:#20120A;
+    border:none;
+    padding:12px;
+    border-radius:9px;
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .lock-error{
+    color:var(--bad);
+    font-size:12.5px;
+    font-weight:600;
+    min-height:16px;
+    margin-top:10px;
+  }
+  #appRoot{display:none;}
+</style>
+</head>
+<body>
+
+<div id="lockScreen">
+  <div class="lock-card">
+    <div class="lock-eyebrow">GOJO Investment (SL) Limited</div>
+    <div class="lock-title">Enter PIN to open<br>Vehicle Rental Log</div>
+    <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••">
+    <button class="lock-btn" id="unlockBtn">Unlock</button>
+    <div class="lock-error" id="lockError"></div>
+  </div>
+</div>
+
+<div id="appRoot">
+
+<header>
+  <div class="eyebrow">GOJO Investment (SL) Limited</div>
+  <h1>Lite Vehicle Rental Log</h1>
+  <div class="sub">Trip start / stop record — light fleet</div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="new">New Trip</div>
+  <div class="tab" data-tab="log">Log <span class="count-pill" id="countPill">0</span></div>
+</div>
+
+<div class="wrap">
+
+  <!-- NEW TRIP PANEL -->
+  <div class="panel active" id="panel-new">
+    <div class="card">
+      <div class="section-title"><span class="dot"></span>Trip Details</div>
+
+      <div class="field">
+        <label for="date">Date</label>
+        <input type="date" id="date">
+      </div>
+
+      <div class="field">
+        <label for="driver">Driver name</label>
+        <input type="text" id="driver" placeholder="e.g. Ibrahim Kamara">
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="shift">Shift</label>
+          <select id="shift">
+            <option value="">Select</option>
+            <option value="Day">Day</option>
+            <option value="Mid">Mid</option>
+            <option value="Night">Night</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="vehicle">Vehicle number</label>
+          <input type="text" id="vehicle" placeholder="e.g. GJ-014">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="vendor">Vendor</label>
+        <input type="text" id="vendor" placeholder="e.g. Rida Logistics">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><span class="dot"></span>Start</div>
+      <div class="field">
+        <label for="startTime">Start time</label>
+        <input type="time" id="startTime">
+      </div>
+      <div class="field">
+        <label>Odometer start (photo)</label>
+        <div class="photo-box" id="startPhotoBox">
+          <button type="button" class="photo-btn" id="startPhotoBtn">📷 Take photo</button>
+          <div class="photo-hint">Capture the odometer reading clearly</div>
+        </div>
+        <input type="file" id="startPhotoInput" accept="image/*" capture="environment">
+      </div>
+    </div>
+
+    <div class="card stop-panel">
+      <div class="section-title"><span class="dot"></span>Stop</div>
+      <div class="field">
+        <label for="stopTime">Stop time</label>
+        <input type="time" id="stopTime">
+      </div>
+      <div class="field">
+        <label>Odometer stop (photo)</label>
+        <div class="photo-box" id="stopPhotoBox">
+          <button type="button" class="photo-btn" id="stopPhotoBtn">📷 Take photo</button>
+          <div class="photo-hint">Capture the odometer reading clearly</div>
+        </div>
+        <input type="file" id="stopPhotoInput" accept="image/*" capture="environment">
+      </div>
+      <div class="field">
+        <label for="reason">Reason for stop</label>
+        <textarea id="reason" placeholder="Describe why the vehicle stopped (fuel, breakdown, rest, delivery, etc.)"></textarea>
+      </div>
+    </div>
+
+    <button class="primary-btn" id="saveBtn">Save Trip Entry</button>
+    <div class="msg" id="saveMsg"></div>
+  </div>
+
+  <!-- LOG PANEL -->
+  <div class="panel" id="panel-log">
+    <div id="entryList"></div>
+    <div class="export-bar">
+      <button class="primary-btn" id="exportBtn">📤 Send via Excel</button>
+      <div class="msg" id="exportMsg"></div>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- /appRoot -->
+
+<script>
+// ---- PIN LOCK ----
+// Change this PIN to whatever your team should use.
+const APP_PIN = "1204";
+
+function tryUnlock(){
+  const val = document.getElementById('pinInput').value.trim();
+  if (val === APP_PIN){
+    sessionStorage.setItem('gojo_unlocked', '1');
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('appRoot').style.display = 'block';
+  } else {
+    document.getElementById('lockError').textContent = 'Incorrect PIN. Try again.';
+    document.getElementById('pinInput').value = '';
+    document.getElementById('pinInput').focus();
+  }
+}
+document.getElementById('unlockBtn').addEventListener('click', tryUnlock);
+document.getElementById('pinInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') tryUnlock();
+});
+if (sessionStorage.getItem('gojo_unlocked') === '1'){
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+} else {
+  document.getElementById('pinInput').focus();
+}
+
+let entries = [];
+let startPhotoData = null;
+let stopPhotoData = null;
+
+const $ = id => document.getElementById(id);
+
+// ---- ON-DEVICE PERSISTENCE ----
+// Entries survive closing the browser or restarting the phone.
+function persistEntries(){
+  try {
+    localStorage.setItem('gojo_entries', JSON.stringify(entries));
+  } catch(e) {
+    console.warn('Could not save entries locally (storage may be full).', e);
+  }
+}
+function loadEntries(){
+  try {
+    const saved = localStorage.getItem('gojo_entries');
+    if (saved) entries = JSON.parse(saved);
+  } catch(e) {
+    console.warn('Could not load saved entries.', e);
+  }
+}
+loadEntries();
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    $('panel-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'log') renderEntries();
+  });
+});
+
+// default date = today
+$('date').value = new Date().toISOString().slice(0,10);
+
+function wirePhoto(boxId, btnId, inputId, setter){
+  const box = $(boxId), btn = $(btnId), input = $(inputId);
+  btn.addEventListener('click', () => input.click());
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setter(ev.target.result);
+      box.classList.add('has-photo');
+      box.innerHTML = `<img src="${ev.target.result}" alt="odometer photo">
+        <button type="button" class="photo-btn retake" id="${btnId}">🔄 Retake photo</button>`;
+      $(btnId).addEventListener('click', () => input.click());
+    };
+    reader.readAsDataURL(file);
+  });
+}
+wirePhoto('startPhotoBox','startPhotoBtn','startPhotoInput', v => startPhotoData = v);
+wirePhoto('stopPhotoBox','stopPhotoBtn','stopPhotoInput', v => stopPhotoData = v);
+
+function showMsg(el, text, ok){
+  el.textContent = text;
+  el.className = 'msg ' + (ok ? 'ok' : 'err');
+  setTimeout(() => { el.textContent = ''; }, 3200);
+}
+
+$('saveBtn').addEventListener('click', () => {
+  const entry = {
+    date: $('date').value,
+    driver: $('driver').value.trim(),
+    shift: $('shift').value,
+    vehicle: $('vehicle').value.trim(),
+    vendor: $('vendor').value.trim(),
+    startTime: $('startTime').value,
+    startPhoto: startPhotoData,
+    stopTime: $('stopTime').value,
+    stopPhoto: stopPhotoData,
+    reason: $('reason').value.trim()
+  };
+
+  if (!entry.date || !entry.driver || !entry.shift || !entry.vehicle){
+    showMsg($('saveMsg'), 'Please fill date, driver, shift and vehicle number.', false);
+    return;
+  }
+
+  entries.push(entry);
+  persistEntries();
+  showMsg($('saveMsg'), '✓ Trip entry saved to log.', true);
+
+  // reset form
+  $('driver').value = '';
+  $('shift').value = '';
+  $('vehicle').value = '';
+  $('vendor').value = '';
+  $('startTime').value = '';
+  $('stopTime').value = '';
+  $('reason').value = '';
+  startPhotoData = null;
+  stopPhotoData = null;
+  $('startPhotoBox').classList.remove('has-photo');
+  $('startPhotoBox').innerHTML = `<button type="button" class="photo-btn" id="startPhotoBtn">📷 Take photo</button><div class="photo-hint">Capture the odometer reading clearly</div>`;
+  $('stopPhotoBox').classList.remove('has-photo');
+  $('stopPhotoBox').innerHTML = `<button type="button" class="photo-btn" id="stopPhotoBtn">📷 Take photo</button><div class="photo-hint">Capture the odometer reading clearly</div>`;
+  wirePhoto('startPhotoBox','startPhotoBtn','startPhotoInput', v => startPhotoData = v);
+  wirePhoto('stopPhotoBox','stopPhotoBtn','stopPhotoInput', v => stopPhotoData = v);
+
+  $('countPill').textContent = entries.length;
+});
+
+function renderEntries(){
+  const list = $('entryList');
+  $('countPill').textContent = entries.length;
+  if (entries.length === 0){
+    list.innerHTML = `<div class="empty">No trip entries yet.<br>Fill the "New Trip" tab and save an entry.</div>`;
+    return;
+  }
+  list.innerHTML = entries.map((e, i) => `
+    <div class="entry">
+      <div class="entry-top">
+        <span class="entry-veh">${e.vehicle || '—'} · ${e.shift || '—'} shift</span>
+        <span class="entry-date">${e.date || ''}</span>
+      </div>
+      <div class="entry-grid">
+        <div>Driver: <b>${e.driver || '—'}</b></div>
+        <div>Vendor: <b>${e.vendor || '—'}</b></div>
+        <div>Start: <b>${e.startTime || '—'}</b> ${e.startPhoto ? '📷' : ''}</div>
+        <div>Stop: <b>${e.stopTime || '—'}</b> ${e.stopPhoto ? '📷' : ''}</div>
+      </div>
+      ${e.reason ? `<div class="entry-reason">${e.reason}</div>` : ''}
+      <div style="margin-top:8px; text-align:right;">
+        <button class="entry-del" data-idx="${i}">Delete entry</button>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.entry-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      entries.splice(parseInt(btn.dataset.idx), 1);
+      persistEntries();
+      renderEntries();
+    });
+  });
+}
+
+// EXCEL EXPORT
+function dataURLtoBuffer(dataURL){
+  const base64 = dataURL.split(',')[1];
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i=0; i<binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+$('exportBtn').addEventListener('click', async () => {
+  if (entries.length === 0){
+    showMsg($('exportMsg'), 'No entries to export yet.', false);
+    return;
+  }
+  showMsg($('exportMsg'), 'Building workbook…', true);
+
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'GOJO Investment (SL) Limited';
+    const ws = wb.addWorksheet('Rental Log');
+
+    ws.columns = [
+      { header: 'Date', key: 'date', width: 12 },
+      { header: 'Driver Name', key: 'driver', width: 20 },
+      { header: 'Shift', key: 'shift', width: 10 },
+      { header: 'Vehicle Number', key: 'vehicle', width: 16 },
+      { header: 'Vendor', key: 'vendor', width: 20 },
+      { header: 'Start Time', key: 'startTime', width: 11 },
+      { header: 'Odometer Start', key: 'odoStart', width: 20 },
+      { header: 'Stop Time', key: 'stopTime', width: 11 },
+      { header: 'Odometer Stop', key: 'odoStop', width: 20 },
+      { header: 'Reason for Stop', key: 'reason', width: 36 },
+    ];
+
+    ws.getRow(1).eachCell(cell => {
+      cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A4A73' } };
+      cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+
+    entries.forEach((e, i) => {
+      const rowIdx = i + 2;
+      ws.addRow({
+        date: e.date, driver: e.driver, shift: e.shift, vehicle: e.vehicle,
+        vendor: e.vendor, startTime: e.startTime, stopTime: e.stopTime,
+        reason: e.reason
+      });
+      ws.getRow(rowIdx).height = 78;
+      ws.getRow(rowIdx).alignment = { vertical: 'middle', wrapText: true };
+
+      if (e.startPhoto){
+        const imgId = wb.addImage({ base64: e.startPhoto, extension: 'jpeg' });
+        ws.addImage(imgId, { tl: { col: 6, row: rowIdx - 1 }, ext: { width: 110, height: 78 } });
+      }
+      if (e.stopPhoto){
+        const imgId2 = wb.addImage({ base64: e.stopPhoto, extension: 'jpeg' });
+        ws.addImage(imgId2, { tl: { col: 8, row: rowIdx - 1 }, ext: { width: 110, height: 78 } });
+      }
+    });
+
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0,10);
+    a.href = url;
+    a.download = `GOJO_Rental_Log_${stamp}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showMsg($('exportMsg'), `✓ Excel file downloaded (${entries.length} entr${entries.length===1?'y':'ies'}). Attach it to WhatsApp/Email to send.`, true);
+  } catch(err){
+    console.error(err);
+    showMsg($('exportMsg'), 'Could not build the file — try again.', false);
+  }
+});
+
+renderEntries();
+</script>
+
+</body>
+</html>
