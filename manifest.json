@@ -1,0 +1,8 @@
+{
+  "name": "GOJO Rental Log",
+  "short_name": "GOJO Rental Log",
+  "start_url": "./gojo-fleet-rental-log.html",
+  "display": "standalone",
+  "background_color": "#1A4A73",
+  "theme_color": "#1A4A73"
+}
